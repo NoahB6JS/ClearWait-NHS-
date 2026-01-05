@@ -8,8 +8,17 @@
   <h3>Millions are waiting for NHS treatment — but the real problem is where the system gets stuck.</h3>
   <p>Waiting lists grow when more patients are referred than can be treated. In some parts of the NHS, this imbalance persists month after month - making the backlog impossible to clear without change.</p>
 
-<p> Total patience waiting: </p>
-<p> Waiting over a year: </p>
+  <p><strong>Total patients waiting:</strong> 
+    <span style="color: red; font-size: 1.5rem;">
+      {{ "{:,}".format(total_waiting) }}
+    </span>
+  </p>
+
+  <p><strong>Waiting over a year:</strong> 
+    <span style="color: darkred; font-size: 1.5rem;">
+      {{ "{:,}".format(waiting_over_52) }}
+    </span>
+  </p>
 
 </body>
 </html>

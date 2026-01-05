@@ -27,10 +27,10 @@ id_cols = [
     "Treatment Function Name"
 ]
 
-# Identify all waiting time columns
+
 week_cols = [c for c in df.columns if c.startswith("Gt")]
 
-# Helper to extract start week number
+
 def get_week_start(col):
     if "Weeks SUM" in col:
         return int(col.split()[1])
@@ -38,7 +38,7 @@ def get_week_start(col):
         return 104
     return None
 
-# Create week mapping
+
 week_map = {c: get_week_start(c) for c in week_cols}
 
 # Define buckets
@@ -53,7 +53,7 @@ df["Wait_19_26_weeks"] = df[bucket_19_26].sum(axis=1)
 df["Wait_27_52_weeks"] = df[bucket_27_52].sum(axis=1)
 df["Wait_52_plus_weeks"] = df[bucket_52_plus].sum(axis=1)
 
-# Final clean dataset
+
 final_df = df[id_cols + [
     "Wait_0_18_weeks",
     "Wait_19_26_weeks",
@@ -65,15 +65,3 @@ final_df = df[id_cols + [
 final_df.to_csv(output_file, index=False)
 
 
-
-print("Bucketed waiting list data saved.")
-
-#-----Organise data and transform it -----------------
-
-
-
-#-----Bottleneck detection - look for the problems--------
-
-
-
-#Trend analysis

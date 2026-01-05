@@ -1,13 +1,81 @@
 from flask import Flask, render_template
+import pandas as pd
+
 app = Flask(__name__)
 
+#Working out the nhs total
+def calculate_total_waiting(df):
+    """
+    Calculate total patients waiting (sum of all buckets)
+    """
+    bucket_columns = [
+        "Wait_0_18_weeks",
+        "Wait_19_26_weeks",
+        "Wait_27_52_weeks",
+        "Wait_52_plus_weeks"
+    ]
+    
+    missing = [col for col in bucket_columns if col not in df.columns]
+    if missing:
+        raise ValueError(f"Missing columns in dataframe: {missing}")
+    
+    total_waiting = df[bucket_columns].sum().sum()
+    return int(total_waiting)
+
+#flask page function
 @app.route("/")
 def index():
-    return render_template("index.html")
+    
+    
+    input_file = "Data_sets/RTT_NHS.csv"
+    df = pd.read_csv(input_file)
 
-@app.route("/about")
-def about():
-    return render_template("about.html")
+  
+    id_cols = [
+        "Period",
+        "Provider Org Name",
+        "RTT Part Type",
+        "RTT Part Description",
+        "Treatment Function Name"
+    ]
+
+    week_cols = [c for c in df.columns if c.startswith("Gt")]
+
+    def get_week_start(col):
+        if "Weeks SUM" in col:
+            return int(col.split()[1])
+        if "104 Weeks" in col:
+            return 104
+        return None
+
+    week_map = {c: get_week_start(c) for c in week_cols}
+    bucket_0_18 = [c for c, w in week_map.items() if w is not None and w <= 18]
+    bucket_19_26 = [c for c, w in week_map.items() if 19 <= w <= 26]
+    bucket_27_52 = [c for c, w in week_map.items() if 27 <= w <= 52]
+    bucket_52_plus = [c for c, w in week_map.items() if w > 52]
+
+
+    df["Wait_0_18_weeks"] = df[bucket_0_18].sum(axis=1)
+    df["Wait_19_26_weeks"] = df[bucket_19_26].sum(axis=1)
+    df["Wait_27_52_weeks"] = df[bucket_27_52].sum(axis=1)
+    df["Wait_52_plus_weeks"] = df[bucket_52_plus].sum(axis=1)
+
+    final_df = df[id_cols + [
+        "Wait_0_18_weeks",
+        "Wait_19_26_weeks",
+        "Wait_27_52_weeks",
+        "Wait_52_plus_weeks"
+    ]]
+    
+    uk_total = calculate_total_waiting(final_df)
+
+    waiting_over_52 = final_df["Wait_52_plus_weeks"].sum()
+
+    return render_template(
+        "index.html",
+        total_waiting=uk_total,
+        waiting_over_52=int(waiting_over_52)
+    )
 
 
 if __name__ == "__main__":
